@@ -1,112 +1,185 @@
-# YouTube Downloader over Tor Proxy
-This script uses a Tor proxy to download YouTube videos using the [youtube-dl](https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme) command line tool.
+# YouTube Video Archiver with Tor
 
-This will allow you to bypass download restrictions of YouTube for downloading large datasets.
+A Python-based tool for archiving YouTube videos anonymously using Tor, with comprehensive metadata extraction.
 
-## Requirements
-1. Python 3.7+
-2. youtube-dl 
-3. tor 
+## ⚠️ Disclaimer
 
-## Setup Tor
-You must first download and configure [Tor](https://www.torproject.org/) to run on commandline.
+**This tool is for personal archival and educational purposes only.**
 
-(MacOS)
-```
-brew install tor
-```
-(Linux)
-```
-sudo apt-get install tor
-```
+- ✅ Respect YouTube's Terms of Service
+- ✅ Only download content you have permission to archive
+- ✅ Don't redistribute copyrighted content
+- ✅ Use responsibly and ethically
+- ✅ Check local laws regarding content downloading
 
-Once Tor has installed you must copy the example ```torrc``` configuration file.
+The author is not responsible for misuse of this tool.
 
-```
-cp /usr/local/etc/tor/torrc.sample /usr/local/etc/tor/torrc
-```
+## 🎯 Features
 
-Create a password to access the local Tor proxy (remember this password for later) using:
+- 🔒 **Tor Integration** - Anonymous downloads via SOCKS5 proxy
+- 📦 **Batch Processing** - Download videos in manageable portions (default: 10 at a time)
+- 🎨 **Metadata Extraction** - Saves thumbnails, descriptions, subtitles, and video info
+- 🔄 **Duplicate Detection** - Automatically skips already downloaded videos
+- 🚫 **Smart Error Handling** - Handles members-only, private, and unavailable videos
+- 📊 **HTML Catalog Generator** - Create searchable video catalog
+- 💾 **Resume Support** - Continue interrupted downloads
 
-```
-tor --hash-password **your_password_here**
-```
+## 📋 Requirements
 
-Copy the hash output from the terminal (it should look like this: ```16:E3EAD3E61428CHSO20EA72221528EE489BDD9D21E937331E1D810694B2```)
+- Python 3.7+
+- Tor Browser or Tor service
+- Windows/Linux/Mac
 
-Edit the ```torrc``` file:
+## 🚀 Installation
 
-```
-sudo nano /usr/local/etc/tor/torrc
+1. **Clone the repository:**
+```bash
+   git clone https://github.com/manvredo/youtube-archiver.git
+   cd youtube-archiver
 ```
 
-Locate the line ```#HashedControlPassword```, remove the comment mark (#) and paste in the output from the previous step. The line should now look like:
-
-```
-HashedControlPassword 16:E3EAD3E61428CHSO20EA72221528EE489BDD9D21E937331E1D810694B2
-```
-
-Remove the comment mark (#) from the ```ControlPort``` line.
-```
-ControlPort 9051
+2. **Install dependencies:**
+```bash
+   pip install yt-dlp requests PySocks stem selenium webdriver-manager
 ```
 
-Close and save your file (```ctrl+x```) then ```Y``` <- if you are using nano to edit the file.
+3. **Install Tor Browser:**
+   - Download from: https://www.torproject.org/download/
+   - Start Tor Browser (runs on port 9150 by default)
 
-Congrats - you're ready to start running your Tor proxy.
-
-## Starting Tor
-You must start the Tor proxy before you run the python script. To start the Tor proxy, run:
-
+4. **Configure:**
+```bash
+   copy config.example.json config.json
+   notepad config.json
 ```
-tor
-```
 
-## Config Setup
-Create a ```config.json``` file by copying and renaming the ```config.example.json```.
+## ⚙️ Configuration
 
-```
+Create `config.json`:
+```json
 {
-  "tor_password": "enter_your_password_here",
+  "tor_password": "",
   "verbose_logging": false
 }
 ```
 
-### Verbose logging
-If you find you're having issues running the tool, enable youtube-dl verbose logging to see what the issue is.
+## 📖 Usage
 
-You can do this by editing the ```config.json``` and changing the ```verbose_logging``` to ```[True/False]```
-
-## Managing your dataset
-The script uses three files (below) to manage the state of downloading your dataset.
-
-| File                      | Description                                                             |
-|---------------------------|-------------------------------------------------------------------------|
-| dataset\.csv              | List of YouTube Ids in your dataset                                     |
-| completed\_downloads\.csv | After each file is downloaded the YouTube ID will be added to this file |
-| error\_files\.csv         | If a file fails to download the YouTube ID will be added to this file   |
-
-Start by adding YouTube Ids to the ```dataset.csv``` file. This file will be used by the script to download the YouTube videos into the ```/videos``` folder.
-
-Files will be downloaded as ```.mp4``` format.
-
-### Dataset.csv
-Each line should be a new YouTube ID found at the end of a youtube link i.e. https://www.youtube.com/watch?v=dQw4w9WgXcQ (dQw4w9WgXcQ - YouTube Id)
-
-```
-nQPXu-T9uWc
-bX2KCrEAc5w
+### 1. Extract Video Links
+```bash
+python extract_youtube_links.py
 ```
 
-## Running
-Start the script using 
-```
+- Enter YouTube channel/playlist URL
+- Choose how many videos to collect (default: 10)
+- Links are saved to `dataset.csv`
+
+### 2. Download Videos
+```bash
 python downloader.py
 ```
 
-## FAQ
-### SocketError
-```SocketError: [Errno 61] Connection refused``` - Check that you have Tor running and configured correctly. This is due to either tor not running, incorrect password, or ControlPort hasn't been commented out.
+- Downloads videos from `dataset.csv`
+- Saves to `videos/` folder with metadata
+- Tracks progress in `completed_downloads.csv`
 
-### IncorrectPassword
-```IncorrectPassword: Authentication failed: Password did not match HashedControlPassword value from configuration``` - Check that your script is using the plain text password that you set when you configured the Tor password (see above)
+### 3. Generate Catalog (Optional)
+```bash
+python create_catalog.py
+```
+
+Creates `video_katalog.html` - a searchable catalog of all downloaded videos.
+
+## 📁 Project Structure
+```
+youtube-archiver/
+├── downloader.py              # Main download script
+├── extract_youtube_links.py   # Link extraction tool
+├── create_catalog.py          # HTML catalog generator
+├── config.json               # Configuration (not in repo)
+├── dataset.csv               # Video URLs to download (not in repo)
+├── completed_downloads.csv   # Download progress (not in repo)
+└── videos/                   # Downloaded content (not in repo)
+    ├── VIDEO_ID - Title.mp4
+    ├── VIDEO_ID - Title.jpg         # Thumbnail
+    ├── VIDEO_ID - Title.info.json   # Metadata
+    └── VIDEO_ID - Title.description # Description
+```
+
+## 🔧 Advanced Features
+
+### Smart Video Categorization
+
+Videos are automatically categorized:
+- ✅ `completed_downloads.csv` - Successfully downloaded
+- ⚠️ `members_only.csv` - Members-only content (skipped)
+- 🔒 `private_videos.csv` - Private videos (skipped)
+- ❌ `unavailable_videos.csv` - Unavailable content
+- ⚠️ `error_files.csv` - Download errors
+
+### IP Rotation
+
+- New Tor IP for each video download
+- Reduces spam detection risk
+- Maximizes anonymity
+
+### Metadata Preservation
+
+Each video saves:
+- Video file (MP4/WebM)
+- Thumbnail (JPG)
+- Complete metadata (JSON)
+- Description text
+- Subtitles (if available, DE/EN)
+
+## 🛡️ Privacy & Security
+
+- ✅ All downloads via Tor network
+- ✅ Config and personal data in `.gitignore`
+- ✅ No tracking or analytics
+- ✅ Local-only operation
+
+## 📝 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push and create a Pull Request
+
+## ⚡ Troubleshooting
+
+**"Connection refused" error:**
+- Ensure Tor Browser is running
+- Check port 9150 (Tor Browser) or 9050 (Tor service)
+
+**"Fragment not found" errors:**
+- Normal with Tor - retry logic handles this
+- Videos download successfully despite warnings
+
+**"Members only" videos:**
+- Automatically skipped and logged
+- No manual intervention needed
+
+## 📚 Use Cases
+
+- 📺 Personal video archival
+- 🎓 Educational content preservation
+- 🎨 Art tutorial collections
+- 📖 Research material backup
+- 🗂️ Offline video libraries
+
+## 🌟 Acknowledgments
+
+Built with:
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloader
+- [Tor Project](https://www.torproject.org/) - Anonymity network
+- [Stem](https://stem.torproject.org/) - Tor controller library
+
+---
+
+**Made with ❤️ for preserving digital content**
